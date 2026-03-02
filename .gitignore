@@ -1,0 +1,43 @@
+# Node / workspaces
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+*.tsbuildinfo
+
+# Build outputs
+dist/
+**/dist/
+.next/
+**/.next/
+.turbo/
+out/
+coverage/
+
+# Environment
+.env
+*.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+!.env.example
+!backend/.env.example
+
+# Prisma / SQLite dev DB
+backend/prisma/*.db*
+
+# Uploads
+backend/uploads/
+
+# IDE / OS junk
+.DS_Store
+.idea/
+.vscode/
+
+# Misc
+*.log
+**/.cache/
+tmp/
+temp/

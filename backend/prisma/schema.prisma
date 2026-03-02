@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  email        String   @unique
+  passwordHash String
+  name         String?
+  invitesSent  Invite[]  @relation("InviteFrom")
+  invitesUsed  Invite[]  @relation("InviteUsedBy")
+  connectionsA Connection[] @relation("UserA")
+  connectionsB Connection[] @relation("UserB")
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  fromUserId String
+  fromUser   User     @relation("InviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toEmail   String
+  expiresAt DateTime
+  usedAt   DateTime?
+  usedById  String?
+  usedBy    User?    @relation("InviteUsedBy", fields: [usedById], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Connection {
+  id      String   @id @default(cuid())
+  userIdA String
+  userA   User     @relation("UserA", fields: [userIdA], references: [id], onDelete: Cascade)
+  userIdB String
+  userB   User     @relation("UserB", fields: [userIdB], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userIdA, userIdB])
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  senderId    String
+  recipientId String
+  text        String
+  attachmentUrl  String?
+  attachmentName String?
+  attachmentType String?
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+}

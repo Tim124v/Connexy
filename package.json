@@ -1,0 +1,16 @@
+{
+  "name": "end-to-end-private-chat-service",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "echo 'Запустите backend и frontend в соответствующих папках'",
+    "build": "echo 'Сборка выполняется в пакетах backend и frontend'",
+    "start": "echo 'Запустите серверы в пакетах backend и frontend'"
+  }
+}
+
+

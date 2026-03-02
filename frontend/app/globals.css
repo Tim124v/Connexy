@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #__next {
+  height: 100%;
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.bubble-left,
+.bubble-right {
+  position: relative;
+}
+.bubble-left::after,
+.bubble-right::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  transform: translateY(4px) rotate(45deg);
+  border-radius: 0 0 6px 0;
+}
+.bubble-left::after {
+  left: -6px;
+  background: #e9eef5;
+  border: 1px solid #d7dce3;
+}
+.bubble-right::after {
+  right: -6px;
+  background: #2563eb;
+}
+
+.dark body {
+  background: linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
+}
+.dark .bubble-left::after {
+  background: #1f2937;
+  border: 1px solid #111827;
+}
+.dark .bubble-right::after {
+  background: #1d4ed8;
+}
+
+
