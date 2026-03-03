@@ -118,13 +118,12 @@ export class ConnectionsService {
   async acceptInvite(token: string, userId: string) {
     const invite = await this.prisma.invite.findFirst({
       where: { token, usedAt: null },
-      include: { fromUser: { select: { id: true } } },
+      include: { fromUser: { select: { id: true, email: true, name: true } } },
     });
     if (!invite || invite.expiresAt < new Date()) throw new NotFoundException('Ссылка недействительна или истекла');
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new ForbiddenException();
-    if (user.email.toLowerCase() !== invite.toEmail)
-      throw new ForbiddenException('Приглашение было отправлено на другой email');
+    // Разрешаем присоединение по токену без проверки совпадения email, чтобы можно было делиться ссылкой напрямую
     const idA = invite.fromUserId;
     const idB = userId;
     const [uid1, uid2] = idA < idB ? [idA, idB] : [idB, idA];
@@ -139,6 +138,6 @@ export class ConnectionsService {
         update: {},
       }),
     ]);
-    return { ok: true };
+    return { ok: true, contact: { id: invite.fromUser.id, email: invite.fromUser.email, name: invite.fromUser.name } };
   }
 }

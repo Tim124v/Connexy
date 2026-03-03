@@ -11,6 +11,7 @@ function RegisterPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const redirect = searchParams.get('redirect');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -19,9 +20,8 @@ function RegisterPageInner() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const redirect = searchParams.get('redirect');
     if (redirect && typeof window !== 'undefined') sessionStorage.setItem('auth_redirect', redirect);
-  }, [searchParams]);
+  }, [redirect]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +39,7 @@ function RegisterPageInner() {
       setAuth(res.user, res.accessToken);
       const redirect = typeof window !== 'undefined' ? sessionStorage.getItem('auth_redirect') : null;
       if (redirect) sessionStorage.removeItem('auth_redirect');
-      router.replace(redirect || '/');
+      router.replace(redirect || '/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка запроса');
     } finally {
@@ -156,7 +156,10 @@ function RegisterPageInner() {
 
             <p className="mt-6 text-sm text-slate-400">
               Уже есть аккаунт?{' '}
-              <Link className="text-blue-200 underline decoration-blue-500/60 underline-offset-4 hover:text-white" href="/auth/login">
+              <Link
+                className="text-blue-200 underline decoration-blue-500/60 underline-offset-4 hover:text-white"
+                href={`/auth/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+              >
                 Войти
               </Link>
             </p>

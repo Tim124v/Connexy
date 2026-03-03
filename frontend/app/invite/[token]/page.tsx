@@ -22,14 +22,15 @@ export default function InvitePage() {
       router.replace(`/auth/login?redirect=/invite/${token}`);
       return;
     }
-    api<{ ok: boolean }>(`/connections/accept`, {
+    api<{ ok: boolean; contact?: { id: string; email: string; name: string | null } }>(`/connections/accept`, {
       method: 'POST',
       body: JSON.stringify({ token }),
     })
       .then((res) => {
         if (res.ok) {
           setStatus('ok');
-          router.replace('/');
+          const select = res.contact?.id ? `?select=${res.contact.id}` : '';
+          router.replace(`/dashboard${select}`);
         } else {
           setStatus('error');
         }
@@ -41,7 +42,7 @@ export default function InvitePage() {
     <main className="min-h-screen flex items-center justify-center p-4 bg-gray-100">
       <div className="bg-white rounded-xl shadow p-6">
         {status === 'loading' && <p>Принятие приглашения...</p>}
-        {status === 'ok' && <p>Успешно. Контакт добавлен.</p>}
+        {status === 'ok' && <p>Успешно. Контакт добавлен, переходим в чат...</p>}
         {status === 'error' && (
           <div>
             <p className="text-red-600">Не удалось принять приглашение (неверная ссылка или другой email).</p>
