@@ -15,7 +15,7 @@ export class ConnectionsService {
         userB: { select: { id: true, email: true, name: true } },
       },
     });
-    return connections.map((c) => ({
+    return connections.map((c: (typeof connections)[number]) => ({
       id: c.id,
       user: c.userIdA === userId ? c.userB : c.userA,
     }));
@@ -91,7 +91,7 @@ export class ConnectionsService {
         usedById: true,
       },
     });
-    return invites.map((inv) => ({
+    return invites.map((inv: (typeof invites)[number]) => ({
       id: inv.id,
       token: inv.token,
       toEmail: inv.toEmail,
