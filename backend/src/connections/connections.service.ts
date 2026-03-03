@@ -39,7 +39,7 @@ export class ConnectionsService {
       if (already) return { ok: false, error: 'Уже в контактах' };
     }
     const token = randomBytes(24).toString('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await this.prisma.invite.create({
       data: { fromUserId: userId, toEmail: toNorm, token, expiresAt },
     });
@@ -75,6 +75,44 @@ export class ConnectionsService {
     }
 
     return { ok: true, link };
+  }
+
+  async listInvites(userId: string) {
+    const invites = await this.prisma.invite.findMany({
+      where: { fromUserId: userId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        token: true,
+        toEmail: true,
+        createdAt: true,
+        expiresAt: true,
+        usedAt: true,
+        usedById: true,
+      },
+    });
+    return invites.map((inv) => ({
+      id: inv.id,
+      token: inv.token,
+      toEmail: inv.toEmail,
+      createdAt: inv.createdAt,
+      expiresAt: inv.expiresAt,
+      usedAt: inv.usedAt,
+      usedById: inv.usedById,
+      status: inv.usedAt ? 'used' : inv.expiresAt < new Date() ? 'expired' : 'active',
+      link: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/invite/${inv.token}`,
+    }));
+  }
+
+  async revokeInvite(userId: string, inviteId: string) {
+    const invite = await this.prisma.invite.findFirst({
+      where: { id: inviteId, fromUserId: userId },
+      select: { id: true, usedAt: true },
+    });
+    if (!invite) throw new ForbiddenException('Инвайт не найден');
+    if (invite.usedAt) throw new ForbiddenException('Инвайт уже использован');
+    await this.prisma.invite.delete({ where: { id: inviteId } });
+    return { ok: true };
   }
 
   async acceptInvite(token: string, userId: string) {

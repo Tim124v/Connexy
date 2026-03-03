@@ -11,9 +11,15 @@ export async function api<T>(
   options: RequestInit & { token?: string } = {},
 ): Promise<T> {
   const { token, ...rest } = options;
+  const auth =
+    token !== undefined
+      ? token
+      : typeof window !== 'undefined'
+        ? localStorage.getItem('accessToken') || ''
+        : '';
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token ?? (typeof window !== 'undefined' ? { Authorization: `Bearer ${localStorage.getItem('accessToken')}` } : {})),
+    ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
     ...rest.headers,
   };
   const res = await fetch(`${API_URL}${path}`, { ...rest, headers });
