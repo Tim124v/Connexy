@@ -1,45 +1,50 @@
-## Contacts/Invites (Simplified)
+# Connexy
 
-Стек:
-- **Backend:** NestJS + TypeScript, Prisma (SQLite), JWT, bcrypt
-- **Frontend:** Next.js 14 + TypeScript, TailwindCSS, Zustand
+Приватные связи: контакты, приглашения по ссылке, чаты.
 
-Возможности:
-- Регистрация/логин по email+пароль
-- Личный кабинет: просмотр контактов
-- Приглашение по email: выдаётся ссылка вида `/invite/:token`, принимается на странице приглашения
+**Стек:** Backend — NestJS, Prisma (SQLite/Postgres), JWT. Frontend — Next.js 14, TailwindCSS, Zustand.
 
-### Быстрый старт (локально, без Docker)
-1. Подготовьте переменные окружения (секреты не коммитим):
+**Возможности:** регистрация/логин, личный кабинет, приглашения по email (ссылка `/invite/:token`), чаты и комнаты.
+
+---
+
+### Быстрый старт (локально)
+
+1. **Переменные окружения** (скопировать примеры, подставить свои секреты):
    ```bash
    cp .env.example .env
    cp backend/.env.example backend/.env
-   # опционально: frontend/.env.local с NEXT_PUBLIC_API_URL=http://localhost:3001
+   cp frontend/.env.example frontend/.env.local
    ```
-2. Установка зависимостей (npm workspaces):
+
+2. **Зависимости и БД:**
    ```bash
    npm install
+   cd backend && npx prisma generate && npx prisma db push && cd ..
    ```
-3. Prisma (SQLite по умолчанию):
-   ```bash
-   cd backend
-   npx prisma generate
-   npx prisma db push
-   ```
-4. Запуск:
-   ```bash
-   npm run dev          # в папке backend
-   cd ../frontend && npm run dev -- -p 3002   # можно выбрать свой порт
-   ```
-5. Открыть фронт в браузере на нужном порту:
-   - Зарегистрироваться → зайти → на главной отправить приглашение по email.
-   - Скопировать выданную ссылку, открыть её в другом браузере/инкогнито, принять приглашение.
 
-Примечания:
-- CORS в dev разрешает все origin на localhost.
-- Если меняете порт фронтенда, ссылка на приглашение автоматически подставляет текущий origin.
+3. **Запуск** (из корня проекта):
+   ```bash
+   npm run dev
+   ```
+   - Frontend: http://localhost:3000  
+   - Backend API: http://localhost:3001  
 
-### Docker (опционально)
-- Скопируйте `.env.example` в `.env` и при необходимости замените `DATABASE_URL` на Postgres (`postgresql://postgres:postgres@postgres:5432/chatdb?schema=public`).
-- Запуск: `docker-compose up --build`
-- Бэкенд поднимется на `3001`, фронтенд запускайте отдельно (или добавьте сервис в compose).
+4. В браузере: регистрация → вход → дашборд → отправить приглашение по email, скопировать ссылку. Ссылку можно открыть в другом браузере/инкогнито и принять приглашение.
+
+**Отдельный запуск:** `npm run dev:backend` (только API), `npm run dev:frontend` (только фронт).
+
+---
+
+### Сборка
+
+```bash
+npm run build
+```
+
+---
+
+### Примечания
+
+- CORS в dev разрешает localhost. В проде задайте `CORS_ORIGIN` и `FRONTEND_URL` в `.env` бэкенда.
+- По умолчанию БД — SQLite (`backend/prisma/dev.db`). Для Postgres замените `DATABASE_URL` в `backend/.env`.

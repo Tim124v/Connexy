@@ -82,6 +82,7 @@ function DashboardInner() {
   const [isTyping, setIsTyping] = useState(false);
   const chatRef = useRef<HTMLDivElement | null>(null);
   const [joinToken, setJoinToken] = useState('');
+  const [now, setNow] = useState(() => Date.now());
 
   const selectedName = useMemo(
     () => (selectedRoom ? selectedRoom.name : selected?.user.name || selected?.user.email || ''),
@@ -193,20 +194,32 @@ function DashboardInner() {
     e.preventDefault();
     setError('');
     setInviteLink('');
+    const emailToInvite = inviteEmail.trim();
+    if (!emailToInvite) return;
     try {
-      const res = await api<{ ok: boolean; link?: string; error?: string }>('/connections/invite', {
+      const res = await api<{ ok: boolean; link?: string; token?: string; error?: string }>('/connections/invite', {
         method: 'POST',
-        body: JSON.stringify({ email: inviteEmail.trim() }),
+        body: JSON.stringify({ email: emailToInvite }),
       });
-      if (!res.ok || !res.link) {
+      if (!res.ok) {
         setError(res.error || 'Не удалось отправить приглашение');
-      } else {
-        setInviteLink(res.link);
-        setInviteEmail('');
-        api<InviteItem[]>('/connections/invites', { method: 'GET' })
-          .then(setInvites)
-          .catch(() => {});
+        return;
       }
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const link = res.link || (res.token ? `${baseUrl}/invite/${res.token}` : '');
+      if (link) {
+        setInviteLink(link);
+      }
+      setInviteEmail('');
+      api<InviteItem[]>('/connections/invites', { method: 'GET' })
+        .then((list) => {
+          setInvites(list);
+          if (!link && list.length > 0) {
+            const newInvite = list.find((inv) => inv.toEmail === emailToInvite) ?? list[0];
+            setInviteLink(newInvite.link);
+          }
+        })
+        .catch(() => {});
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка запроса');
     }

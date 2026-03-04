@@ -15,16 +15,12 @@ dist/
 out/
 coverage/
 
-# Environment
+# Environment (секреты не коммитим; .env.example — коммитим для документации)
 .env
-*.env
 .env.local
 .env.*.local
 backend/.env
 frontend/.env
-.env.example
-backend/.env.example
-frontend/.env.example
 frontend/.env.local
 backend/.env.local
 

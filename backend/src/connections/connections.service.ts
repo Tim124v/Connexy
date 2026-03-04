@@ -46,6 +46,9 @@ export class ConnectionsService {
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const link = `${baseUrl}/invite/${token}`;
 
+    // Явно возвращаем и токен, и ссылку для отображения в UI
+    const result = { ok: true as const, link, token };
+
     const smtpHost = process.env.SMTP_HOST;
     const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
     const smtpUser = process.env.SMTP_USER;
@@ -74,7 +77,7 @@ export class ConnectionsService {
       }
     }
 
-    return { ok: true, link };
+    return result;
   }
 
   async listInvites(userId: string) {
