@@ -1,0 +1,6 @@
+# Render: пример настроек для Web Service (бэкенд)
+# Либо создай сервис по Blueprint, либо укажи команды вручную в Dashboard.
+# Root Directory: backend
+# Build Command: npm install && npx prisma generate && npm run build
+# Start Command: npx prisma db push && node dist/main.js
+# Environment: см. README раздел "Деплой на Render"

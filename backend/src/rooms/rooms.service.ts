@@ -1,14 +1,19 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hash, compare } from 'bcrypt';
 
-type MembershipWithRoom = Prisma.RoomMemberGetPayload<{
-  include: { room: { include: { owner: { select: { id: true; email: true; name: true } } } } };
-}>;
-type RoomMessageWithSender = Prisma.RoomMessageGetPayload<{
-  include: { sender: { select: { id: true; email: true; name: true } } };
-}>;
+interface MembershipWithRoom {
+  room: { id: string; name: string; ownerId: string; expiresAt: Date; owner: { id: string; email: string; name: string | null } };
+  joinedAt: Date;
+  userId: string;
+}
+interface RoomMessageWithSender {
+  id: string;
+  text: string;
+  senderId: string;
+  createdAt: Date;
+  sender: { id: string; email: string; name: string | null };
+}
 
 @Injectable()
 export class RoomsService {
