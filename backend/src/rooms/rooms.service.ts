@@ -1,6 +1,14 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hash, compare } from 'bcrypt';
+
+type MembershipWithRoom = Prisma.RoomMemberGetPayload<{
+  include: { room: { include: { owner: { select: { id: true; email: true; name: true } } } } };
+}>;
+type RoomMessageWithSender = Prisma.RoomMessageGetPayload<{
+  include: { sender: { select: { id: true; email: true; name: true } } };
+}>;
 
 @Injectable()
 export class RoomsService {
@@ -21,7 +29,7 @@ export class RoomsService {
       },
       orderBy: { joinedAt: 'desc' },
     });
-    return memberships.map((m) => ({
+    return memberships.map((m: MembershipWithRoom) => ({
       id: m.room.id,
       name: m.room.name,
       owner: m.room.owner,
@@ -78,7 +86,7 @@ export class RoomsService {
       include: { sender: { select: { id: true, email: true, name: true } } },
       take: 200,
     });
-    return messages.map((m) => ({
+    return messages.map((m: RoomMessageWithSender) => ({
       id: m.id,
       text: m.text,
       senderId: m.senderId,
