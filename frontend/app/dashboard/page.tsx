@@ -25,7 +25,7 @@ type AttachmentDraft = { type: 'media' | 'file'; name: string; file: File; previ
 type InviteItem = {
   id: string;
   token: string;
-  toEmail: string;
+  toEmail: string | null;
   createdAt: string;
   expiresAt: string;
   usedAt: string | null;
@@ -62,7 +62,6 @@ function DashboardInner() {
   const { user, accessToken, logout, hydrated } = useAuthStore();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLink, setInviteLink] = useState('');
   const [error, setError] = useState('');
   const [invites, setInvites] = useState<InviteItem[]>([]);
@@ -83,7 +82,7 @@ function DashboardInner() {
   const chatRef = useRef<HTMLDivElement | null>(null);
   const [joinToken, setJoinToken] = useState('');
   const [now, setNow] = useState(() => Date.now());
-  const [sendingInvite, setSendingInvite] = useState(false);
+  const [creatingLink, setCreatingLink] = useState(false);
 
   const selectedName = useMemo(
     () => (selectedRoom ? selectedRoom.name : selected?.user.name || selected?.user.email || ''),
@@ -191,46 +190,37 @@ function DashboardInner() {
       .map(([key, items]) => ({ title: formatter.format(new Date(key)), items }));
   }, [chatMessages]);
 
-  const sendInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const createInviteLink = async () => {
     setError('');
     setInviteLink('');
-    const emailToInvite = inviteEmail.trim();
-    if (!emailToInvite) return;
-    setSendingInvite(true);
+    setCreatingLink(true);
     try {
-      const res = await api<{ ok: boolean; link?: string; token?: string; error?: string }>('/connections/invite', {
+      const res = await api<{ ok: boolean; link?: string; token?: string; error?: string }>('/connections/invite-link', {
         method: 'POST',
-        body: JSON.stringify({ email: emailToInvite }),
+        body: JSON.stringify({}),
       });
       if (!res.ok) {
-        setError(res.error || 'Не удалось отправить приглашение');
+        setError(res.error || 'Не удалось создать ссылку');
         return;
       }
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const link = res.link || (res.token ? `${baseUrl}/invite/${res.token}` : '');
       if (link) {
         setInviteLink(link);
+        await navigator.clipboard?.writeText(link);
       }
-      setInviteEmail('');
       api<InviteItem[]>('/connections/invites', { method: 'GET' })
-        .then((list) => {
-          setInvites(list);
-          if (!link && list.length > 0) {
-            const newInvite = list.find((inv) => inv.toEmail === emailToInvite) ?? list[0];
-            setInviteLink(newInvite.link);
-          }
-        })
+        .then(setInvites)
         .catch(() => {});
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Ошибка запроса';
       if (msg.includes('fetch') || msg.includes('Failed') || msg === 'Ошибка запроса') {
-        setError('Сервер не ответил. Подождите 30–60 сек (холодный старт Render) или проверьте интернет. Если вы на проде — в Vercel должен быть NEXT_PUBLIC_API_URL с URL бэкенда на Render.');
+        setError('Сервер не ответил. Подождите 30–60 сек (холодный старт Render) или проверьте интернет.');
       } else {
         setError(msg);
       }
     } finally {
-      setSendingInvite(false);
+      setCreatingLink(false);
     }
   };
 
@@ -470,8 +460,8 @@ function DashboardInner() {
             <div className="rounded-2xl border border-white/5 bg-white/5 p-3">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Пригласить по email</h3>
-                  <span className="text-[11px] text-slate-400">Токен на 30 дней</span>
+                  <h3 className="text-sm font-semibold text-white">Приглашение по ссылке</h3>
+                  <span className="text-[11px] text-slate-400">Ссылка на 30 дней. Кто перейдёт — попадёт в контакты после регистрации.</span>
                 </div>
                 <button
                   type="button"
@@ -485,39 +475,32 @@ function DashboardInner() {
                   Обновить
                 </button>
               </div>
-              <form onSubmit={sendInvite} className="flex flex-col gap-2">
-                <input
-                  type="email"
-                  className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-white placeholder:text-slate-500 outline-none ring-0 transition focus:border-blue-400 focus:bg-white/15 focus:ring-2 focus:ring-blue-500/30"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="Email пользователя"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={sendingInvite}
-                  className="rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-blue-500/40 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                >
-                  {sendingInvite ? 'Отправка…' : 'Отправить приглашение'}
-                </button>
-              </form>
-              {error && <p className="mt-1 text-xs text-red-300">{error}</p>}
-          {inviteLink && (
-            <div className="mt-2 flex flex-col gap-2 rounded-xl border border-white/5 bg-white/5 p-2">
-              <div className="text-[11px] uppercase tracking-wide text-slate-400">Ссылка приглашения</div>
-              <div className="flex items-center gap-2">
-                <div className="min-w-0 break-all text-xs text-slate-200">{inviteLink}</div>
+              <div className="flex flex-col gap-2">
                 <button
                   type="button"
-                  className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-[11px] text-slate-200 hover:bg-white/10 transition"
-                  onClick={() => navigator.clipboard?.writeText(inviteLink)}
+                  disabled={creatingLink}
+                  onClick={createInviteLink}
+                  className="rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-blue-500/40 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 >
-                  Копировать
+                  {creatingLink ? 'Создаём…' : 'Создать ссылку и скопировать'}
                 </button>
+                {error && <p className="text-xs text-red-300">{error}</p>}
+                {inviteLink && (
+                  <div className="mt-1 flex flex-col gap-2 rounded-xl border border-white/5 bg-white/5 p-2">
+                    <div className="text-[11px] uppercase tracking-wide text-slate-400">Ссылка скопирована в буфер</div>
+                    <div className="flex items-center gap-2">
+                      <div className="min-w-0 break-all text-xs text-slate-200">{inviteLink}</div>
+                      <button
+                        type="button"
+                        className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-[11px] text-slate-200 hover:bg-white/10 transition"
+                        onClick={() => navigator.clipboard?.writeText(inviteLink)}
+                      >
+                        Копировать
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
           <div className="mt-3 space-y-2 rounded-xl border border-white/5 bg-white/5 p-2">
             <div className="text-[11px] uppercase tracking-wide text-slate-400">У меня есть код/ссылка</div>
             <form onSubmit={joinByToken} className="flex flex-col gap-2">
@@ -545,7 +528,7 @@ function DashboardInner() {
                       className="rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-xs text-slate-200 flex items-center gap-2"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-semibold">{inv.toEmail}</div>
+                        <div className="truncate font-semibold">{inv.toEmail ?? 'Приглашение по ссылке'}</div>
                         <div className="text-[11px] text-slate-400">
                           до {new Date(inv.expiresAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })}
                         </div>

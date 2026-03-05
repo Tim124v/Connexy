@@ -19,7 +19,8 @@ export default function InvitePage() {
       return;
     }
     if (!accessToken) {
-      router.replace(`/auth/login?redirect=/invite/${token}`);
+      const redirect = `/invite/${token}`;
+      router.replace(`/auth/login?redirect=${encodeURIComponent(redirect)}`);
       return;
     }
     api<{ ok: boolean; contact?: { id: string; email: string; name: string | null } }>(`/connections/accept`, {

@@ -189,7 +189,10 @@ function LoginPageInner() {
 
             <p className="mt-6 text-sm text-slate-400">
               Нет аккаунта?{' '}
-              <Link className="text-blue-200 underline decoration-blue-500/60 underline-offset-4 hover:text-white" href="/auth/register">
+              <Link
+                className="text-blue-200 underline decoration-blue-500/60 underline-offset-4 hover:text-white"
+                href={searchParams.get('redirect') ? `/auth/register?redirect=${encodeURIComponent(searchParams.get('redirect'))}` : '/auth/register'}
+              >
                 Зарегистрируйтесь
               </Link>
             </p>

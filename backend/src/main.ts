@@ -1,7 +1,14 @@
+import { config as loadEnv } from 'dotenv';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Подгружаем backend/.env (при npm run dev -w backend cwd может быть корень репо)
+const __dirname = dirname(fileURLToPath(import.meta.url));
+loadEnv({ path: join(__dirname, '..', '.env') });
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './modules/app.module.js';
 import { ConfigService } from '@nestjs/config';
-import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { NestExpressApplication } from '@nestjs/platform-express';
 

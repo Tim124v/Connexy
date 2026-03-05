@@ -1,21 +1,12 @@
 'use client';
 
-import { FormEvent, useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '../lib/api';
 import { useAuthStore } from '../store/auth';
-import { SplineScene } from '../components/ui/splite';
 
-export default function Home() {
+export default function LandingPage() {
   const router = useRouter();
-  const { user, accessToken, setAuth } = useAuthStore();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const { accessToken } = useAuthStore();
 
   useEffect(() => {
     if (accessToken) {
@@ -23,148 +14,42 @@ export default function Home() {
     }
   }, [accessToken, router]);
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const res = await api<{ ok: boolean; user?: { id: string; email: string; name: string | null }; accessToken?: string; error?: string }>(
-        '/auth/login',
-        { method: 'POST', body: JSON.stringify({ email: email.trim(), password }) },
-      );
-      if (!res.ok || !res.user || !res.accessToken) {
-        setError(res.error || 'Неверный email или пароль');
-        return;
-      }
-      setAuth(res.user, res.accessToken);
-      router.replace('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка запроса');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <main className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-50">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 -top-32 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="absolute right-10 top-10 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div
-          className="absolute inset-0 opacity-25 mix-blend-soft-light"
+    <main
+      className="flex min-h-screen items-center justify-center px-4"
+      style={{ background: 'linear-gradient(to bottom, #020617, #0f172a)', color: '#f8fafc' }}
+    >
+      <div
+        className="landing-card flex flex-col items-center gap-8 rounded-3xl px-10 py-10 text-center sm:px-14 sm:py-12"
+        style={{
+          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'rgba(15,23,42,0.75)',
+          boxShadow: '0 30px 100px rgba(15,23,42,0.9)',
+        }}
+      >
+        <h1
+          className="text-4xl font-semibold tracking-[0.45em] sm:text-5xl lg:text-6xl"
+          style={{ color: '#f8fafc' }}
+        >
+          C O N N E X Y
+        </h1>
+        <p
+          className="max-w-sm text-slate-400 text-sm leading-relaxed sm:text-base"
+          style={{ color: 'rgba(148,163,184,0.95)' }}
+        >
+          Приватные комнаты, приглашения по ссылке и живой чат — общайтесь только с теми, с кем хотите.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.push('/auth/register')}
+          className="landing-button mt-1 rounded-full px-12 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 active:translate-y-0"
           style={{
-            backgroundImage:
-              'radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.08), transparent 50%), radial-gradient(1px 1px at 80% 0%, rgba(255,255,255,0.06), transparent 50%), radial-gradient(1px 1px at 50% 100%, rgba(255,255,255,0.05), transparent 50%)',
+            background: 'linear-gradient(to right, #3b82f6, #6366f1, #8b5cf6)',
+            boxShadow: '0 18px 45px rgba(56,189,248,0.35)',
           }}
-        />
-      </div>
-
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:gap-10 sm:py-10 lg:px-10">
-        <header className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 font-semibold text-white shadow-lg shadow-blue-500/30">
-              CX
-            </div>
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-blue-200/80">Connexy</p>
-              <h1 className="text-lg font-semibold text-slate-50">Private connections, refined</h1>
-            </div>
-          </div>
-          <div className="hidden text-sm text-slate-300 md:flex items-center gap-3">
-            <span className="rounded-full bg-green-500/15 px-3 py-1 text-green-200">Online</span>
-            <span className="text-slate-400">Secure by design</span>
-          </div>
-        </header>
-
-        <div className="grid h-full flex-1 items-stretch gap-6 lg:grid-cols-[480px,1fr]">
-          <div className="rounded-3xl border border-white/5 bg-slate-900/70 p-6 shadow-[0_30px_120px_-60px_rgba(0,0,0,0.9)] backdrop-blur sm:p-8 lg:p-10">
-            <div className="space-y-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200">
-                🔒 End-to-end mindset
-              </span>
-              <h2 className="text-3xl font-semibold leading-tight text-white">Войдите, чтобы продолжить</h2>
-              <p className="text-sm text-slate-400">
-                Доступ к контактам, приглашениям и защищённым чатам в один клик.
-              </p>
-            </div>
-
-            <form onSubmit={submit} className="mt-6 space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-sm text-slate-200">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 outline-none ring-0 transition focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-500/40"
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-sm text-slate-200">
-                  <label>Пароль</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="text-slate-500 transition hover:text-slate-200"
-                  >
-                    {showPassword ? 'Скрыть' : 'Показать'}
-                  </button>
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 outline-none ring-0 transition focus:border-blue-400 focus:bg-white/10 focus:ring-2 focus:ring-blue-500/40"
-                  required
-                />
-              </div>
-              <label className="flex items-center gap-2 text-sm text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  className="h-4 w-4 rounded border-white/20 bg-white/5 accent-blue-500"
-                />
-                Запомнить меня
-              </label>
-              {error && <p className="text-sm text-red-400">{error}</p>}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-blue-500/40 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loading ? 'Входим...' : 'Войти в аккаунт'}
-              </button>
-            </form>
-
-            <p className="mt-6 text-sm text-slate-400">
-              Нет аккаунта?{' '}
-              <Link className="text-blue-200 underline decoration-blue-500/60 underline-offset-4 hover:text-white" href="/auth/register">
-                Зарегистрируйтесь
-              </Link>
-            </p>
-          </div>
-
-          <div className="relative flex h-full min-h-[480px] flex-col justify-between gap-6">
-            <div className="relative h-full overflow-hidden rounded-3xl border border-white/5 bg-slate-900/60 shadow-[0_30px_140px_-80px_rgba(0,0,0,1)]">
-              <SplineScene
-                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                className="h-full min-h-[420px] w-full sm:min-h-[520px]"
-              />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-slate-950/70 via-slate-950/20 to-transparent" />
-              <div className="absolute left-5 bottom-5 flex max-w-xs flex-col gap-2 rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white backdrop-blur sm:left-6 sm:bottom-6">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200">Realtime</p>
-                <p className="text-base font-semibold">Личные связи без шума</p>
-                <p className="text-xs text-slate-300">Приглашения по токену, быстрые ответы и медиа.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        >
+          Get started
+        </button>
       </div>
     </main>
   );

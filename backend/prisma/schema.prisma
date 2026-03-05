@@ -26,16 +26,16 @@ model User {
 }
 
 model Invite {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id         String    @id @default(cuid())
+  token      String    @unique
   fromUserId String
-  fromUser   User     @relation("InviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toEmail   String
-  expiresAt DateTime
-  usedAt   DateTime?
-  usedById  String?
-  usedBy    User?    @relation("InviteUsedBy", fields: [usedById], references: [id])
-  createdAt DateTime @default(now())
+  fromUser   User      @relation("InviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toEmail    String?   // null = приглашение по ссылке (без email)
+  expiresAt  DateTime
+  usedAt     DateTime?
+  usedById   String?
+  usedBy     User?     @relation("InviteUsedBy", fields: [usedById], references: [id])
+  createdAt  DateTime  @default(now())
 }
 
 model Connection {

@@ -1,6 +1,22 @@
-# Render: пример настроек для Web Service (бэкенд)
-# Либо создай сервис по Blueprint, либо укажи команды вручную в Dashboard.
-# Root Directory: backend
-# Build Command: npm install && npx prisma generate && npm run build
-# Start Command: npx prisma db push && node dist/main.js
-# Environment: см. README раздел "Деплой на Render"
+# Render: бэкенд Connexy
+# Вариант 1: New → Blueprint → подключи этот репо, выбери render.yaml.
+# Вариант 2: Ручной деплой — см. README раздел "Деплой".
+
+services:
+  - type: web
+    name: connexy-backend
+    runtime: node
+    rootDir: backend
+
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && node dist/main.js
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # DATABASE_URL, JWT_SECRET, CORS_ORIGIN, FRONTEND_URL — задай в Dashboard (Environment)
+      # Для БД: New → PostgreSQL, скопируй Internal Database URL в DATABASE_URL

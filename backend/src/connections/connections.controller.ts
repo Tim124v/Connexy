@@ -23,6 +23,11 @@ export class ConnectionsController {
     return this.connections.revokeInvite(user.id, id);
   }
 
+  @Post('invite-link')
+  async createInviteLink(@ReqUser() user: { id: string }) {
+    return this.connections.createInviteLink(user.id);
+  }
+
   @Post('invite')
   async invite(@ReqUser() user: { id: string }, @Body() body: { email: string }) {
     return this.connections.invite(user.id, body.email || '');

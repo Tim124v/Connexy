@@ -21,6 +21,20 @@ export class ConnectionsService {
     }));
   }
 
+  /** Создать приглашение по ссылке (без email). Кто перейдёт по ссылке — зарегистрируется/войдёт и попадёт в контакты. */
+  async createInviteLink(userId: string) {
+    const me = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!me) throw new ForbiddenException();
+    const token = randomBytes(24).toString('hex');
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await this.prisma.invite.create({
+      data: { fromUserId: userId, toEmail: null, token, expiresAt },
+    });
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const link = `${baseUrl}/invite/${token}`;
+    return { ok: true as const, link, token };
+  }
+
   async invite(userId: string, toEmail: string) {
     const toNorm = toEmail.toLowerCase().trim();
     const me = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -103,7 +117,7 @@ export class ConnectionsService {
     return invites.map((inv: (typeof invites)[number]) => ({
       id: inv.id,
       token: inv.token,
-      toEmail: inv.toEmail,
+      toEmail: inv.toEmail ?? null,
       createdAt: inv.createdAt,
       expiresAt: inv.expiresAt,
       usedAt: inv.usedAt,

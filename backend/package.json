@@ -7,8 +7,9 @@
     "dev": "nest start --watch",
     "build": "nest build",
     "start": "node dist/main.js",
-    "start:prod": "npm run prisma:generate && npm run build && npm run prisma:push && node dist/main.js",
+    "start:prod": "npx prisma migrate deploy && node dist/main.js",
     "prisma:generate": "prisma generate",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:format": "prisma format",
     "prisma:push": "prisma db push",
     "db:push": "prisma db push"

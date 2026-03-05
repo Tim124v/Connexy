@@ -56,4 +56,34 @@ html, body, #__next {
   background: #1d4ed8;
 }
 
+@keyframes landing-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes landing-glow {
+  0%,
+  100% {
+    box-shadow: 0 18px 45px rgba(56, 189, 248, 0.35);
+  }
+  50% {
+    box-shadow: 0 22px 65px rgba(129, 140, 248, 0.85);
+  }
+}
+
+.landing-card {
+  animation: landing-fade-up 700ms ease-out;
+}
+
+.landing-button {
+  animation: landing-glow 2200ms ease-in-out infinite;
+}
+
+
 
