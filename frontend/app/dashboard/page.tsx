@@ -83,6 +83,7 @@ function DashboardInner() {
   const chatRef = useRef<HTMLDivElement | null>(null);
   const [joinToken, setJoinToken] = useState('');
   const [now, setNow] = useState(() => Date.now());
+  const [sendingInvite, setSendingInvite] = useState(false);
 
   const selectedName = useMemo(
     () => (selectedRoom ? selectedRoom.name : selected?.user.name || selected?.user.email || ''),
@@ -196,6 +197,7 @@ function DashboardInner() {
     setInviteLink('');
     const emailToInvite = inviteEmail.trim();
     if (!emailToInvite) return;
+    setSendingInvite(true);
     try {
       const res = await api<{ ok: boolean; link?: string; token?: string; error?: string }>('/connections/invite', {
         method: 'POST',
@@ -221,7 +223,14 @@ function DashboardInner() {
         })
         .catch(() => {});
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка запроса');
+      const msg = err instanceof Error ? err.message : 'Ошибка запроса';
+      if (msg.includes('fetch') || msg.includes('Failed') || msg === 'Ошибка запроса') {
+        setError('Сервер не ответил. Подождите 30–60 сек (холодный старт Render) или проверьте интернет. Если вы на проде — в Vercel должен быть NEXT_PUBLIC_API_URL с URL бэкенда на Render.');
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setSendingInvite(false);
     }
   };
 
@@ -487,9 +496,10 @@ function DashboardInner() {
                 />
                 <button
                   type="submit"
-                  className="rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-blue-500/40 active:translate-y-0"
+                  disabled={sendingInvite}
+                  className="rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-blue-500/40 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 >
-                  Отправить приглашение
+                  {sendingInvite ? 'Отправка…' : 'Отправить приглашение'}
                 </button>
               </form>
               {error && <p className="mt-1 text-xs text-red-300">{error}</p>}

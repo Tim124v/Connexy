@@ -64,16 +64,22 @@ export class ConnectionsService {
           auth: { user: smtpUser, pass: smtpPass },
         });
 
-        await transporter.sendMail({
-          from: smtpFrom,
-          to: toNorm,
-          subject: 'Приглашение в чат',
-          text: `Вас пригласили в чат. Перейдите по ссылке для регистрации/входа: ${link}`,
-          html: `<p>Вас пригласили в чат.</p><p><a href="${link}">Открыть приглашение</a></p>`,
-        });
+        // Отправку письма делаем в фоне, чтобы не блокировать ответ API
+        void transporter
+          .sendMail({
+            from: smtpFrom,
+            to: toNorm,
+            subject: 'Приглашение в чат',
+            text: `Вас пригласили в чат. Перейдите по ссылке для регистрации/входа: ${link}`,
+            html: `<p>Вас пригласили в чат.</p><p><a href="${link}">Открыть приглашение</a></p>`,
+          })
+          .catch((err: unknown) => {
+            // eslint-disable-next-line no-console
+            console.warn('Не удалось отправить email приглашение:', (err as Error).message);
+          });
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.warn('Не удалось отправить email приглашение:', (err as Error).message);
+        console.warn('Не удалось подготовить email приглашение:', (err as Error).message);
       }
     }
 
