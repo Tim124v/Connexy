@@ -146,7 +146,7 @@ export class ConnectionsService {
     if (!invite || invite.expiresAt < new Date()) throw new NotFoundException('Ссылка недействительна или истекла');
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new ForbiddenException();
-    // Разрешаем присоединение по токену без проверки совпадения email, чтобы можно было делиться ссылкой напрямую
+    if (invite.fromUserId === userId) throw new ForbiddenException('Нельзя принять своё же приглашение');
     const idA = invite.fromUserId;
     const idB = userId;
     const [uid1, uid2] = idA < idB ? [idA, idB] : [idB, idA];
