@@ -28,7 +28,12 @@ export class ConnectionsService {
     const token = randomBytes(24).toString('hex');
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await this.prisma.invite.create({
-      data: { fromUserId: userId, toEmail: null, token, expiresAt },
+      data: {
+        fromUserId: userId,
+        token,
+        expiresAt,
+        toEmail: null as unknown as string, // schema: toEmail String?; cast for older Prisma client on CI/Render
+      },
     });
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const link = `${baseUrl}/invite/${token}`;

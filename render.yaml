@@ -1,6 +1,9 @@
 # Render: бэкенд Connexy
-# Вариант 1: New → Blueprint → подключи этот репо, выбери render.yaml.
-# Вариант 2: Ручной деплой — см. README раздел "Деплой".
+# В Dashboard (Settings → Build & Deploy) задай вручную:
+#   Root Directory: backend
+#   Build Command:  npm install && npx prisma generate && npm run build
+#   Start Command:  npx prisma migrate deploy && node dist/main.js
+# (без лишних команд и без npm install --include=dev)
 
 services:
   - type: web
