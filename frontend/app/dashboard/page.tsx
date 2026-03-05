@@ -83,6 +83,7 @@ function DashboardInner() {
   const [joinToken, setJoinToken] = useState('');
   const [now, setNow] = useState(() => Date.now());
   const [creatingLink, setCreatingLink] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'failed'>('idle');
 
   const selectedName = useMemo(
     () => (selectedRoom ? selectedRoom.name : selected?.user.name || selected?.user.email || ''),
@@ -207,7 +208,13 @@ function DashboardInner() {
       const link = res.link || (res.token ? `${baseUrl}/invite/${res.token}` : '');
       if (link) {
         setInviteLink(link);
-        await navigator.clipboard?.writeText(link);
+        setCopyStatus('idle');
+        try {
+          await navigator.clipboard?.writeText(link);
+          setCopyStatus('success');
+        } catch {
+          setCopyStatus('failed');
+        }
       }
       api<InviteItem[]>('/connections/invites', { method: 'GET' })
         .then(setInvites)
@@ -487,13 +494,25 @@ function DashboardInner() {
                 {error && <p className="text-xs text-red-300">{error}</p>}
                 {inviteLink && (
                   <div className="mt-1 flex flex-col gap-2 rounded-xl border border-white/5 bg-white/5 p-2">
-                    <div className="text-[11px] uppercase tracking-wide text-slate-400">Ссылка скопирована в буфер</div>
+                    {copyStatus === 'success' && (
+                      <div className="text-[11px] uppercase tracking-wide text-green-300">Ссылка скопирована в буфер</div>
+                    )}
+                    {copyStatus === 'failed' && (
+                      <div className="text-[11px] text-amber-300">Не удалось скопировать. Нажмите «Копировать» ниже.</div>
+                    )}
                     <div className="flex items-center gap-2">
                       <div className="min-w-0 break-all text-xs text-slate-200">{inviteLink}</div>
                       <button
                         type="button"
                         className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-[11px] text-slate-200 hover:bg-white/10 transition"
-                        onClick={() => navigator.clipboard?.writeText(inviteLink)}
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard?.writeText(inviteLink);
+                            setCopyStatus('success');
+                          } catch {
+                            setCopyStatus('failed');
+                          }
+                        }}
                       >
                         Копировать
                       </button>

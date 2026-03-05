@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import { sanitizeRedirect } from '../../../lib/sanitize-redirect';
 import { useAuthStore } from '../../../store/auth';
 import { SplineScene } from '../../../components/ui/splite';
 
@@ -12,6 +13,7 @@ function RegisterPageInner() {
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
   const redirect = searchParams.get('redirect');
+  const safeRedirect = sanitizeRedirect(redirect);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -20,7 +22,8 @@ function RegisterPageInner() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (redirect && typeof window !== 'undefined') sessionStorage.setItem('auth_redirect', redirect);
+    const safe = sanitizeRedirect(redirect);
+    if (safe && typeof window !== 'undefined') sessionStorage.setItem('auth_redirect', safe);
   }, [redirect]);
 
   const submit = async (e: React.FormEvent) => {
@@ -37,8 +40,9 @@ function RegisterPageInner() {
         return;
       }
       setAuth(res.user, res.accessToken);
-      const redirect = typeof window !== 'undefined' ? sessionStorage.getItem('auth_redirect') : null;
-      if (redirect) sessionStorage.removeItem('auth_redirect');
+      const raw = typeof window !== 'undefined' ? sessionStorage.getItem('auth_redirect') : null;
+      const redirect = sanitizeRedirect(raw);
+      if (raw) sessionStorage.removeItem('auth_redirect');
       router.replace(redirect || '/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка запроса');
@@ -158,7 +162,7 @@ function RegisterPageInner() {
               Уже есть аккаунт?{' '}
               <Link
                 className="text-blue-200 underline decoration-blue-500/60 underline-offset-4 hover:text-white"
-                href={`/auth/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+                href={safeRedirect ? `/auth/login?redirect=${encodeURIComponent(safeRedirect)}` : '/auth/login'}
               >
                 Войти
               </Link>

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import { sanitizeRedirect } from '../../../lib/sanitize-redirect';
 import { useAuthStore } from '../../../store/auth';
 import { SplineScene } from '../../../components/ui/splite';
 
@@ -19,8 +20,9 @@ function LoginPageInner() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const redirect = searchParams.get('redirect');
-    if (redirect && typeof window !== 'undefined') sessionStorage.setItem('auth_redirect', redirect);
+    const raw = searchParams.get('redirect');
+    const safe = sanitizeRedirect(raw);
+    if (safe && typeof window !== 'undefined') sessionStorage.setItem('auth_redirect', safe);
   }, [searchParams]);
 
   const submit = async (e: React.FormEvent) => {
@@ -37,8 +39,9 @@ function LoginPageInner() {
         return;
       }
       setAuth(res.user, res.accessToken);
-      const redirect = typeof window !== 'undefined' ? sessionStorage.getItem('auth_redirect') : null;
-      if (redirect) sessionStorage.removeItem('auth_redirect');
+      const raw = typeof window !== 'undefined' ? sessionStorage.getItem('auth_redirect') : null;
+      const redirect = sanitizeRedirect(raw);
+      if (raw) sessionStorage.removeItem('auth_redirect');
       router.replace(redirect || '/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка запроса');
@@ -191,7 +194,10 @@ function LoginPageInner() {
               Нет аккаунта?{' '}
               <Link
                 className="text-blue-200 underline decoration-blue-500/60 underline-offset-4 hover:text-white"
-                href={searchParams.get('redirect') ? `/auth/register?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : '/auth/register'}
+                href={(() => {
+                  const safe = sanitizeRedirect(searchParams.get('redirect'));
+                  return safe ? `/auth/register?redirect=${encodeURIComponent(safe)}` : '/auth/register';
+                })()}
               >
                 Зарегистрируйтесь
               </Link>

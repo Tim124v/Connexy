@@ -85,5 +85,14 @@ html, body, #__next {
   animation: landing-glow 2200ms ease-in-out infinite;
 }
 
-
+@media (prefers-reduced-motion: reduce) {
+  .landing-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .landing-button {
+    animation: none;
+  }
+}
 
