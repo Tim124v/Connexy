@@ -191,7 +191,7 @@ function LoginPageInner() {
               Нет аккаунта?{' '}
               <Link
                 className="text-blue-200 underline decoration-blue-500/60 underline-offset-4 hover:text-white"
-                href={searchParams.get('redirect') ? `/auth/register?redirect=${encodeURIComponent(searchParams.get('redirect'))}` : '/auth/register'}
+                href={searchParams.get('redirect') ? `/auth/register?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : '/auth/register'}
               >
                 Зарегистрируйтесь
               </Link>
