@@ -15,15 +15,24 @@ dist/
 out/
 coverage/
 
-# Environment
+# Environment (секреты не коммитим; .env.example — коммитим для документации)
 .env
-*.env
 .env.local
 .env.*.local
 backend/.env
 frontend/.env
-!.env.example
-!backend/.env.example
+frontend/.env.local
+backend/.env.local
+
+# Secrets / keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.cer
+id_rsa
+id_ed25519
 
 # Prisma / SQLite dev DB
 backend/prisma/*.db*

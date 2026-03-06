@@ -6,10 +6,16 @@
     "backend",
     "frontend"
   ],
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
   "scripts": {
-    "dev": "echo 'Запустите backend и frontend в соответствующих папках'",
-    "build": "echo 'Сборка выполняется в пакетах backend и frontend'",
-    "start": "echo 'Запустите серверы в пакетах backend и frontend'"
+    "predev": "lsof -ti :3000 | xargs kill -9 2>/dev/null; lsof -ti :3001 | xargs kill -9 2>/dev/null; lsof -ti :10000 | xargs kill -9 2>/dev/null; true",
+    "dev": "sleep 2 && concurrently -n backend,frontend -c blue,green \"PORT=3001 npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "start": "echo 'Запустите backend и frontend: npm run dev:backend и npm run dev:frontend'"
   }
 }
 

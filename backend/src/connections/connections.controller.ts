@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Delete, Param } from '@nestjs/common';
 import { ConnectionsService } from './connections.service.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { ReqUser } from '../auth/req-user.decorator.js';
@@ -11,6 +11,21 @@ export class ConnectionsController {
   @Get()
   async list(@ReqUser() user: { id: string }) {
     return this.connections.listMy(user.id);
+  }
+
+  @Get('invites')
+  async listInvites(@ReqUser() user: { id: string }) {
+    return this.connections.listInvites(user.id);
+  }
+
+  @Delete('invites/:id')
+  async revoke(@ReqUser() user: { id: string }, @Param('id') id: string) {
+    return this.connections.revokeInvite(user.id, id);
+  }
+
+  @Post('invite-link')
+  async createInviteLink(@ReqUser() user: { id: string }) {
+    return this.connections.createInviteLink(user.id);
   }
 
   @Post('invite')

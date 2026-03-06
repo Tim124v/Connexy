@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -12,27 +12,42 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   email        String   @unique
+  username     String?  @unique
   passwordHash String
   name         String?
+  isVerified   Boolean  @default(false)
+  emailVerifications EmailVerification[]
   invitesSent  Invite[]  @relation("InviteFrom")
   invitesUsed  Invite[]  @relation("InviteUsedBy")
   connectionsA Connection[] @relation("UserA")
   connectionsB Connection[] @relation("UserB")
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
+  roomsOwned   Room[]   @relation("RoomOwner")
+  roomMemberships RoomMember[] @relation("RoomMemberUser")
+  roomMessages RoomMessage[] @relation("RoomMessageSender")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Invite {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id         String    @id @default(cuid())
+  token      String    @unique
   fromUserId String
-  fromUser   User     @relation("InviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toEmail   String
-  expiresAt DateTime
-  usedAt   DateTime?
-  usedById  String?
-  usedBy    User?    @relation("InviteUsedBy", fields: [usedById], references: [id])
-  createdAt DateTime @default(now())
+  fromUser   User      @relation("InviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toEmail    String?   // null = приглашение по ссылке (без email)
+  expiresAt  DateTime
+  usedAt     DateTime?
+  usedById   String?
+  usedBy     User?     @relation("InviteUsedBy", fields: [usedById], references: [id])
+  createdAt  DateTime  @default(now())
 }
 
 model Connection {
@@ -57,4 +72,37 @@ model Message {
   attachmentType String?
   sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+}
+
+model Room {
+  id           String   @id @default(cuid())
+  name         String
+  passwordHash String
+  ownerId      String
+  owner        User     @relation("RoomOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime @default(now())
+  members      RoomMember[]
+  messages     RoomMessage[]
+}
+
+model RoomMember {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String
+  joinedAt  DateTime @default(now())
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User     @relation("RoomMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+}
+
+model RoomMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  senderId  String
+  text      String
+  createdAt DateTime @default(now())
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender    User     @relation("RoomMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 }

@@ -1,0 +1,24 @@
+# Render: бэкенд Connexy
+# В Dashboard (Settings → Build & Deploy):
+#   Root Directory: backend
+#   Build Command:  npm install --include=dev && npx prisma generate && npm run build
+#   Start Command:  npx prisma migrate deploy && node dist/main.js
+
+services:
+  - type: web
+    name: connexy-backend
+    runtime: node
+    rootDir: backend
+
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && node dist/main.js
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # DATABASE_URL, JWT_SECRET, CORS_ORIGIN, FRONTEND_URL — задай в Dashboard (Environment)
+      # Для БД: New → PostgreSQL, скопируй Internal Database URL в DATABASE_URL
